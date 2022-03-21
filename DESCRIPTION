@@ -1,8 +1,8 @@
 Package: rgoslin
 Type: Package
 Title: Lipid Shorthand Name Parsing and Normalization
-Version: 0.99.5
-Date: 2022-03-17
+Version: 0.99.6
+Date: 2022-03-21
 Authors@R: c(
     person("Nils", "Hoffmann", email = "nils.hoffmann@cebitec.uni-bielefeld.de", role=c("aut","cre"), comment = c(ORCID = "0000-0002-6540-6875")),
     person("Dominik", "Kopczynski", email = "dominik.kopczynski@univie.ac.at", role=c("aut"), comment = c(ORCID = "0000-0001-5885-4568")))
@@ -13,7 +13,9 @@ Description: The R implementation for the Grammar of Succint Lipid Nomenclature
     Category and Class information. Also, the structural level and further structural
     details about the head group, fatty acyls and functional groups are returned, where applicable.
 License: MIT + file LICENSE
-Imports: Rcpp (>= 1.0.3)
+Imports: 
+    Rcpp (>= 1.0.3),
+    dplyr
 LinkingTo: Rcpp, testthat
 Suggests:
     testthat (>= 2.1.0),
@@ -21,7 +23,6 @@ Suggests:
     knitr,
     rmarkdown,
     kableExtra,
-    dplyr,
     BiocManager,
     tibble
 RoxygenNote: 7.1.2
