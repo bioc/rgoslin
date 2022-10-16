@@ -41,6 +41,7 @@ GoslinParserEventHandler::GoslinParserEventHandler() : LipidBaseParserEventHandl
     reg("hg_pl_pre_event", set_head_group_name);
     reg("hg_lpl_pre_event", set_head_group_name);
     reg("hg_lsl_pre_event", set_head_group_name);
+    reg("hg_so_lsl_pre_event", set_head_group_name);
     reg("hg_dsl_pre_event", set_head_group_name);
     reg("st_pre_event", set_head_group_name);
     reg("hg_ste_pre_event", set_head_group_name);
@@ -167,13 +168,19 @@ void GoslinParserEventHandler::add_mediator_function(TreeNode *node){
         if (mediator_function_positions.size() > 0) functional_group->position = mediator_function_positions[0];
     }
         
+    else if (mediator_function == "Hp"){
+        functional_group = KnownFunctionalGroups::get_functional_group("OOH");
+        fg = "OOH";
+        if (mediator_function_positions.size() > 0) functional_group->position = mediator_function_positions[0];
+    }
+        
     else if (mediator_function == "E" || mediator_function == "Ep"){
         functional_group = KnownFunctionalGroups::get_functional_group("Ep");
         fg = "Ep";
         if (mediator_function_positions.size() > 0) functional_group->position = mediator_function_positions[0];
     }
         
-    else if (mediator_function == "DH" || mediator_function == "DiH"){
+    else if (mediator_function == "DH" || mediator_function == "DiH" || mediator_function == "diH"){
         functional_group = KnownFunctionalGroups::get_functional_group("OH");
         fg = "OH";
         if (mediator_function_positions.size() > 0){
@@ -522,6 +529,23 @@ void GoslinParserEventHandler::append_fa(TreeNode *node) {
 
     fa_list->push_back(current_fa);
     current_fa = NULL;
+    
+    if (head_group == "Sa" || head_group == "So" || head_group == "S1P" || head_group == "Sa1P"){
+        FattyAcid* fa = fa_list->at(0);
+        
+        FunctionalGroup* functional_group = KnownFunctionalGroups::get_functional_group("OH");
+        if (head_group == "Sa" || head_group == "So"){
+            functional_group->count = 2;
+            fa->lipid_FA_bond_type = LCB_EXCEPTION;
+        }
+        else {
+            functional_group->count = 1;
+            fa->lipid_FA_bond_type = LCB_REGULAR;
+        }
+        if (uncontains_val_p(fa->functional_groups, "OH")) fa->functional_groups->insert({"OH", vector<FunctionalGroup*>()});
+        fa->functional_groups->at("OH").push_back(functional_group);
+        
+    }
 }
     
     
@@ -589,7 +613,6 @@ void GoslinParserEventHandler::add_carbon(TreeNode *node) {
 
 void GoslinParserEventHandler::add_hydroxyl(TreeNode *node) {
     int num_h = atoi(node->get_text().c_str());
-
     if (sp_regular_lcb()) num_h -= 1;
     if (num_h <= 0) return;
     
