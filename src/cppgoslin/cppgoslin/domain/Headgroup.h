@@ -48,6 +48,7 @@ public:
     const set<string> exception_headgroups {"Cer", "SPB"};
     
     Headgroup(string _headgroup, vector<HeadgroupDecorator*>* _decorators = 0, bool _use_headgroup = false);
+    Headgroup(Headgroup *h);
     ~Headgroup();
     static void init();
     string get_lipid_string(LipidLevel level = NO_LEVEL);
@@ -56,6 +57,7 @@ public:
     static LipidClass get_class(string _head_group);
     static string get_class_string(LipidClass _lipid_class);
     static string get_category_string(LipidCategory _lipid_category);
+    static bool decorator_sorting (HeadgroupDecorator* hi, HeadgroupDecorator* hj);
     string get_class_name();
     
 };

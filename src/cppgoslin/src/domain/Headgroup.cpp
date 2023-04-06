@@ -37,6 +37,16 @@ Headgroup::Headgroup(string _headgroup, vector<HeadgroupDecorator*>* _decorators
     sp_exception = lipid_category == SP && contains_val(LipidClasses::get_instance().lipid_classes.at(lipid_class).special_cases, "SP_Exception") && decorators->size() == 0;
     
 }
+    
+Headgroup::Headgroup(Headgroup *h){
+    headgroup = h->headgroup;
+    lipid_category = h->lipid_category;
+    lipid_class = h->lipid_class;
+    use_headgroup = h->use_headgroup;
+    decorators = new vector<HeadgroupDecorator*>();
+    for (auto hgd : *(h->decorators)) decorators->push_back(hgd->copy());
+    sp_exception = h->sp_exception;
+}
 
 
 Headgroup::~Headgroup(){
@@ -121,7 +131,12 @@ string Headgroup::get_class_name(){
 
 string Headgroup::get_category_string(LipidCategory _lipid_category){
     return CategoryString.at(_lipid_category);
-}        
+}
+
+
+bool Headgroup::decorator_sorting (HeadgroupDecorator* hi, HeadgroupDecorator* hj){
+    return hi->name < hj->name;
+}
         
         
 string Headgroup::get_lipid_string(LipidLevel level){
@@ -139,12 +154,25 @@ string Headgroup::get_lipid_string(LipidLevel level){
             
     // adding prefixes to the headgroup
     if (!is_level(level, COMPLETE_STRUCTURE | FULL_STRUCTURE | STRUCTURE_DEFINED)){
-        vector<string> prefixes;
+        vector<HeadgroupDecorator*> decorators_tmp;
         for (auto hgd : *decorators){
-            if (!hgd->suffix) prefixes.push_back(hgd->to_string(level));
+            if (!hgd->suffix) decorators_tmp.push_back(hgd->copy());
         }
-        sort (prefixes.begin(), prefixes.end());
-        for (auto prefix : prefixes) headgoup_string << prefix;
+        sort (decorators_tmp.begin(), decorators_tmp.end(), decorator_sorting);
+        
+        for (int i = decorators_tmp.size() - 1; i > 0; --i){
+            HeadgroupDecorator* hge = decorators_tmp[i];
+            HeadgroupDecorator* hge_before = decorators_tmp[i - 1];
+            if (hge->name == hge_before->name){
+                hge_before->count += hge->count;
+                delete hge;
+                decorators_tmp.erase(decorators_tmp.begin() + i);
+            }
+        }
+        for (auto hge : decorators_tmp){
+            headgoup_string << hge->to_string(level);
+            delete hge;
+        }
     }
     else {
         for (auto hgd : *decorators){

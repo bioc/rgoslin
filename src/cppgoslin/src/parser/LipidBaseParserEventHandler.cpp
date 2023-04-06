@@ -25,6 +25,24 @@ SOFTWARE.
 
 #include "cppgoslin/parser/LipidBaseParserEventHandler.h"
 
+const map<string, vector<string> > LipidBaseParserEventHandler::glyco_table{{"ga1", {"Gal", "GalNAc", "Gal", "Glc"}},
+               {"ga2", {"GalNAc", "Gal", "Glc"}},
+               {"gb3", {"Gal", "Gal", "Glc"}},
+               {"gb4", {"GalNAc", "Gal", "Gal", "Glc"}},
+               {"gd1", {"Gal", "GalNAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gd1a", {"Hex", "Hex", "Hex", "HexNAc", "NeuAc", "NeuAc"}},
+               {"gd2", {"GalNAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gd3", {"NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gm1", {"Gal", "GalNAc", "NeuAc", "Gal", "Glc"}},
+               {"gm2", {"GalNAc", "NeuAc", "Gal", "Glc"}},
+               {"gm3", {"NeuAc", "Gal", "Glc"}},
+               {"gm4", {"NeuAc", "Gal"}},
+               {"gp1", {"NeuAc", "NeuAc", "Gal", "GalNAc", "NeuAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gq1", {"NeuAc", "Gal", "GalNAc", "NeuAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gt1", {"Gal", "GalNAc", "NeuAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gt2", {"GalNAc", "NeuAc", "NeuAc", "NeuAc", "Gal", "Glc"}},
+               {"gt3", {"NeuAc", "NeuAc", "NeuAc", "Gal", "Glc"}}};
+
 
 LipidBaseParserEventHandler::LipidBaseParserEventHandler() : BaseParserEventHandler<LipidAdduct*>() {
     fa_list = new vector<FattyAcid*>();
@@ -63,6 +81,26 @@ bool LipidBaseParserEventHandler::sp_regular_lcb(){
 
 
 Headgroup* LipidBaseParserEventHandler::prepare_headgroup_and_checks(){
+    
+    string hg = to_lower(head_group);
+    if (contains_val(glyco_table, hg)){
+    
+        for (auto carbohydrate : glyco_table.at(hg)){
+            FunctionalGroup* functional_group = 0;
+            try {
+                functional_group = KnownFunctionalGroups::get_functional_group(carbohydrate);
+            }
+            catch (const std::exception& e){
+                throw LipidParsingException("Carbohydrate '" + carbohydrate + "' unknown");
+            }
+            
+            functional_group->elements->at(ELEMENT_O) -= 1;
+            headgroup_decorators->push_back((HeadgroupDecorator*)functional_group);
+        }
+        head_group = "Cer";
+    }
+    
+    
     Headgroup *headgroup = new Headgroup(head_group, headgroup_decorators, use_head_group);
     
     if (use_head_group) return headgroup;
@@ -76,22 +114,25 @@ Headgroup* LipidBaseParserEventHandler::prepare_headgroup_and_checks(){
     // make lyso
     bool can_be_lyso = contains_val(LipidClasses::get_instance().lipid_classes, Headgroup::get_class("L" + head_group)) ? contains_val(LipidClasses::get_instance().lipid_classes.at(Headgroup::get_class("L" + head_group)).special_cases, "Lyso") : 0;
     
-    if (true_fa + 1 == poss_fa && level != SPECIES && headgroup->lipid_category == GP && can_be_lyso){
-        head_group = "L" + head_group;
+    
+    if ((true_fa + 1 == poss_fa || true_fa + 2 == poss_fa) && level != SPECIES && headgroup->lipid_category == GP && can_be_lyso){
+        if (true_fa + 1 == poss_fa) head_group = "L" + head_group;
+        else head_group = "DL" + head_group;
         headgroup->decorators->clear();
         delete headgroup;
         headgroup = new Headgroup(head_group, headgroup_decorators, use_head_group);
         poss_fa = contains_val(LipidClasses::get_instance().lipid_classes, headgroup->lipid_class) ? LipidClasses::get_instance().lipid_classes.at(headgroup->lipid_class).possible_num_fa : 0;
     }
     
-    
-    else if (true_fa + 2 == poss_fa && level != SPECIES && headgroup->lipid_category == GP && head_group == "CL"){
-        head_group = "DL" + head_group;
+    else if ((true_fa + 1 == poss_fa || true_fa + 2 == poss_fa) && level != SPECIES && headgroup->lipid_category == GL && head_group == "TG"){
+        if (true_fa + 1 == poss_fa) head_group = "DG";
+        else head_group = "MG";
         headgroup->decorators->clear();
         delete headgroup;
         headgroup = new Headgroup(head_group, headgroup_decorators, use_head_group);
         poss_fa = contains_val(LipidClasses::get_instance().lipid_classes, headgroup->lipid_class) ? LipidClasses::get_instance().lipid_classes.at(headgroup->lipid_class).possible_num_fa : 0;
     }
+    
     
     if (level == SPECIES){
         if (true_fa == 0 && poss_fa != 0){
@@ -135,6 +176,14 @@ Headgroup* LipidBaseParserEventHandler::prepare_headgroup_and_checks(){
     
         
 LipidSpecies* LipidBaseParserEventHandler::assemble_lipid(Headgroup *headgroup){
+    
+    for (auto fa : *fa_list){
+        if (fa->stereo_information_missing()){
+            set_lipid_level(FULL_STRUCTURE);
+            break;
+        }
+    }
+    
     LipidSpecies *ls = NULL;
     switch (level){
         case COMPLETE_STRUCTURE: ls = new LipidCompleteStructure(headgroup, fa_list); break;

@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "cppgoslin/domain/FattyAcid.h"
 
-FattyAcid::FattyAcid(string _name, int _num_carbon, DoubleBonds* _double_bonds, map<string, vector<FunctionalGroup*> >* _functional_groups, LipidFaBondType _lipid_FA_bond_type, int _position) : FunctionalGroup(_name, _position, 1, _double_bonds, false, "", 0, _functional_groups) {
+FattyAcid::FattyAcid(string _name, int _num_carbon, DoubleBonds* _double_bonds, map<string, vector<FunctionalGroup*> >* _functional_groups, LipidFaBondType _lipid_FA_bond_type, int _position) : FunctionalGroup(_name, _position, 1, _double_bonds, false, "", false, 0, _functional_groups) {
     
     num_carbon = _num_carbon;
     lipid_FA_bond_type = _lipid_FA_bond_type;
@@ -37,10 +37,6 @@ FattyAcid::FattyAcid(string _name, int _num_carbon, DoubleBonds* _double_bonds, 
     
     if (num_carbon < 0 || num_carbon == 1){
         throw ConstraintViolationException("FattyAcid must have at least 2 carbons! Got " + std::to_string(num_carbon));
-    }
-    
-    if (position < 0){
-        throw ConstraintViolationException("FattyAcid position must be greater or equal to 0! Got " + std::to_string(position));
     }
     
     if (double_bonds->get_num() < 0){

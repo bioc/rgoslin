@@ -71,11 +71,12 @@ public:
     void set_ring_stereo(TreeNode *node);
     void post_sphingolipid(TreeNode *node);
     void set_hydroxyl(TreeNode *node);
-    void set_lcb(TreeNode *node);
+    void new_lcb(TreeNode *node);
     void set_fatty_acyl_stereo(TreeNode *node);
     void add_pl_species_data(TreeNode *node);
     void new_fatty_acyl_chain(TreeNode *node);
     void add_fatty_acyl_chain(TreeNode *node);
+    void add_dihydroxyl(TreeNode *node);
     void set_double_bond_position(TreeNode *node);
     void set_double_bond_information(TreeNode *node);
     void add_double_bond_information(TreeNode *node);
@@ -122,8 +123,11 @@ public:
     void set_acer(TreeNode *node);
     void set_acer_species(TreeNode *node);
     void set_sterol_definition(TreeNode *node);
+    void set_carbohydrate_number(TreeNode *node);
+    void set_glyco_sphingo_lipid(TreeNode *node);
     
 };
+
 
 
 #endif /* SHORTHAND_PARSER_EVENT_HANDLER_H */

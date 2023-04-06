@@ -28,6 +28,8 @@ SOFTWARE.
 #define reg(x, y) BaseParserEventHandler<LipidAdduct*>::registered_events->insert({x, bind(&ShorthandParserEventHandler::y, this, placeholders::_1)})
 #define FA_I ("fa" + std::to_string(current_fas.size()))
 
+
+
 ShorthandParserEventHandler::ShorthandParserEventHandler() : LipidBaseParserEventHandler() {
     
     reg("lipid_pre_event", reset_lipid);
@@ -56,12 +58,14 @@ ShorthandParserEventHandler::ShorthandParserEventHandler() : LipidBaseParserEven
     reg("med_hg_triple_pre_event", set_headgroup_name);
     reg("gl_hg_single_pre_event", set_headgroup_name);
     reg("gl_hg_double_pre_event", set_headgroup_name);
-    reg("gl_hg_true_double_pre_event", set_headgroup_name);
+    reg("gl_hg_glycosyl_single_pre_event", set_headgroup_name);
+    reg("gl_hg_glycosyl_double_pre_event", set_headgroup_name);
     reg("gl_hg_triple_pre_event", set_headgroup_name);
     reg("pl_hg_single_pre_event", set_headgroup_name);
     reg("pl_hg_double_pre_event", set_headgroup_name);
     reg("pl_hg_quadro_pre_event", set_headgroup_name);
     reg("sl_hg_single_pre_event", set_headgroup_name);
+    reg("sl_hg_glyco_pre_event", set_headgroup_name);
     reg("pl_hg_double_fa_hg_pre_event", set_headgroup_name);
     reg("sl_hg_double_name_pre_event", set_headgroup_name);
     reg("st_hg_pre_event", set_headgroup_name);
@@ -70,6 +74,8 @@ ShorthandParserEventHandler::ShorthandParserEventHandler() : LipidBaseParserEven
     reg("hg_pip_pure_d_pre_event", set_headgroup_name);
     reg("hg_pip_pure_t_pre_event", set_headgroup_name);
     reg("hg_PE_PS_pre_event", set_headgroup_name);
+    reg("glyco_sphingo_lipid_pre_event", set_glyco_sphingo_lipid);
+    reg("carbohydrate_number_pre_event", set_carbohydrate_number);
 
     // set head group headgroup_decorators
     reg("carbohydrate_pre_event", set_carbohydrate);
@@ -77,7 +83,8 @@ ShorthandParserEventHandler::ShorthandParserEventHandler() : LipidBaseParserEven
     reg("carbohydrate_isomeric_pre_event", set_carbohydrate_isomeric);
     
     // fatty acyl events
-    reg("lcb_post_event", set_lcb);
+    reg("lcb_pre_event", new_lcb);
+    reg("lcb_post_event", add_fatty_acyl_chain);
     reg("fatty_acyl_chain_pre_event", new_fatty_acyl_chain);
     reg("fatty_acyl_chain_post_event", add_fatty_acyl_chain);
     reg("carbon_pre_event", set_carbon);
@@ -97,6 +104,7 @@ ShorthandParserEventHandler::ShorthandParserEventHandler() : LipidBaseParserEven
     reg("func_group_count_pre_event", set_functional_group_count);
     reg("stereo_type_fg_pre_event", set_functional_group_stereo);
     reg("molecular_func_group_name_pre_event", set_sn_position_func_group);
+    reg("fa_db_only_post_event", add_dihydroxyl);
     
     // set cycle events
     reg("func_group_cycle_pre_event", set_cycle);
@@ -151,7 +159,7 @@ const set<string> ShorthandParserEventHandler::special_types {"acyl", "alkyl", "
 
 
 void ShorthandParserEventHandler::reset_lipid(TreeNode *node) {
-    level = FULL_STRUCTURE;
+    level = COMPLETE_STRUCTURE;
     adduct = NULL;
     head_group = "";
     fa_list->clear();
@@ -162,18 +170,31 @@ void ShorthandParserEventHandler::reset_lipid(TreeNode *node) {
     contains_stereo_information = false;
 }
 
+
 void ShorthandParserEventHandler::set_sterol_definition(TreeNode *node){
     head_group += " " + node->get_text();
     fa_list->erase(fa_list->begin());
 }
 
+
+
+void ShorthandParserEventHandler::set_carbohydrate_number(TreeNode *node){
+    int carbohydrate_num = node->get_int();
+    if (!headgroup_decorators->empty() && carbohydrate_num > 0){
+        headgroup_decorators->back()->count += (carbohydrate_num - 1);
+    }
+}
+            
+            
+
+void ShorthandParserEventHandler::set_glyco_sphingo_lipid(TreeNode *node){
+    
+}
+
+
 void ShorthandParserEventHandler::build_lipid(TreeNode *node) {
     if (acer_species) fa_list->at(0)->num_carbon -= 2;
     Headgroup *headgroup = prepare_headgroup_and_checks();
-    
-    if (level == FULL_STRUCTURE && contains_stereo_information){
-        level = COMPLETE_STRUCTURE;
-    }
     
     // add count numbers for fatty acyl chains
     int fa_it = !fa_list->empty() && (fa_list->front()->lipid_FA_bond_type == LCB_REGULAR || fa_list->front()->lipid_FA_bond_type == LCB_EXCEPTION);
@@ -294,16 +315,22 @@ void ShorthandParserEventHandler::set_ring_stereo(TreeNode *node){
 
 
 
-void ShorthandParserEventHandler::set_lcb(TreeNode *node){
-        fa_list->back()->set_type(LCB_REGULAR);
-        fa_list->back()->name = "LCB";
-}
-
-
-
 void ShorthandParserEventHandler::set_fatty_acyl_stereo(TreeNode *node){
     current_fas.back()->stereochemistry = node->get_text();
     contains_stereo_information = true;
+}
+
+
+void ShorthandParserEventHandler::add_dihydroxyl(TreeNode* node){
+    if (uncontains_val(LCB_STATES, ((FattyAcid*)current_fas.back())->lipid_FA_bond_type)) return;
+    
+    int num_h = 1;
+    if (contains_val(SP_EXCEPTION_CLASSES, head_group) && headgroup_decorators->size() == 0) num_h += 1;
+    
+    FunctionalGroup* functional_group = KnownFunctionalGroups::get_functional_group("OH");
+    functional_group->count = num_h;
+    if (uncontains_val_p(current_fas.back()->functional_groups, "OH")) current_fas.back()->functional_groups->insert({"OH", vector<FunctionalGroup*>()});
+    current_fas.back()->functional_groups->at("OH").push_back(functional_group);
 }
 
 
@@ -321,6 +348,14 @@ void ShorthandParserEventHandler::add_pl_species_data(TreeNode *node){
 void ShorthandParserEventHandler::new_fatty_acyl_chain(TreeNode *node){
     current_fas.push_back(new FattyAcid("FA"));
     tmp.set_dictionary(FA_I, new GenericDictionary());
+}
+
+
+
+void ShorthandParserEventHandler::new_lcb(TreeNode *node){
+    new_fatty_acyl_chain(node);
+    ((FattyAcid*)current_fas.back())->set_type(LCB_REGULAR);
+    current_fas.back()->name = "LCB";
 }
 
 
