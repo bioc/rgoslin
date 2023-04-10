@@ -120,17 +120,27 @@ plasmalogen : 'O' | 'o' | 'P' | 'p';
 
 
 /* sphingolipid rules (21) */
-sl : lsl | dsl;
+sl : lsl | dsl | so_lsl;
 lsl : hg_lslc headgroup_separator lcb;
+so_lsl : hg_so_lslc headgroup_separator fa;
 dsl : hg_dslc headgroup_separator sl_species | hg_dslc headgroup_separator sl_subspecies;
 
 sl_species : lcb;
 sl_subspecies : lcb sorted_fa_separator fa;
 
 hg_lslc : hg_lsl | hg_lsl heavy_hg;
-hg_lsl : 'LCB' | 'LCBP' | 'LHexCer' | 'LSM' | 'LIPC' | 'So' | 'Sa' | 'SPH' | 'Sph' | 'LCB' | 'S1P' | 'SPH-P' | 'SIP' | 'Sa1P';
+hg_lsl : 'LCB' | 'LCBP' | 'LHexCer' | 'LSM' | 'LIPC' | 'So' | 'Sa' | 'SPH' | 'Sph' | 'LCB' | 'S1P' | 'SPH-P' | 'SIP' | 'Sa1P' | 'SPA1P' | 'SPA';
+hg_so_lslc : hg_so_lsl | hg_so_lsl heavy_hg;
+hg_so_lsl : 'So' | 'Sa' | 'Sa1P' | 'S1P';
 hg_dslc : hg_dsl | hg_dsl heavy_hg;
-hg_dsl : 'Cer' | 'CerP' | 'EPC' | 'GB4' | 'GD3' | 'GB3' | 'GM1' | 'GM3' | 'GM4' | 'Hex3Cer' | 'Hex2Cer' | 'HexCer' | 'IPC' | 'MIP2C' | 'M(IP)2C' | 'MIPC' | 'SHexCer' | 'SM' | 'FMC-5' | 'FMC-6' | 'CerPE' | 'PE-Cer';
+hg_dsl : 'Cer' | 'CerP' | 'EPC' | 'HexCer' | 'Hex2Cer' | 'Hex3Cer' | 'IPC' | 'MIP2C' | 'M(IP)2C' | 'MIPC' | 'SHexCer' | 'SM' | 'FMC-5' | 'FMC-6' | 'CerPE' | 'PE-Cer' | glyco_sphingo_lipid;
+ glyco_sphingo_lipid : 'GA1' | 'Ga1' | 'GA2' | 'Ga2' |
+ 'GB3' | 'Gb3' | 'GB4' | 'Gb4' |
+ 'GD1' | 'Gd1' | 'GD2' | 'Gd2' | 'GD3' | 'Gd3' |
+ 'GM1' | 'Gm1' | 'GM2' | 'Gm2' | 'GM3' | 'Gm3' | 'GM4' | 'Gm4' |
+ 'GP1' | 'Gp1' |
+ 'GQ1' | 'Gq1' |
+ 'GT1' | 'Gt1' | 'GT2' | 'Gt2' | 'GT3' | 'Gt3';
 
 
 
@@ -139,13 +149,13 @@ hg_dsl : 'Cer' | 'CerP' | 'EPC' | 'GB4' | 'GD3' | 'GB3' | 'GM1' | 'GM3' | 'GM4' 
 /* sterol lipids (2 classes) */
 sterol : stc | ste | stes;
 stc : st | st heavy_hg;
-st : 'Ch' | 'Cholesterol' | 'ST 27:1;1' | 'ST 27:2;1' | 'ST 28:3;1' | 'ST 30:2;1' | 'ST 29:2;1' | 'ST 28:2;1' | 'Desmosterol' | 'Stigmasterol' | 'Ergosterol' | 'Lanosterol' | 'Ergostadienol' | 'Campesterol' | 'Sitosterol';
+st : 'Ch' | 'Cholesterol' | 'ST 27:1;1' | 'ST 27:2;1' | 'ST 28:3;1' | 'ST 30:2;1' | 'ST 29:2;1' | 'ST 28:2;1' | 'Desmosterol' | 'Stigmasterol' | 'Ergosterol' | 'Lanosterol' | 'Ergostadienol' | 'Campesterol' | 'Sitosterol' | 'Chol';
 ste : hg_stc sorted_fa_separator fa | hg_stc unsorted_fa_separator fa;
 stes : hg_stcs headgroup_separator fa;
 hg_stc : hg_ste | hg_ste heavy_hg;
 hg_ste : 'SE 27:1' | 'SE 27:2' | 'SE 28:3' | 'SE 30:2' | 'SE 29:2' | 'SE 28:2';
 hg_stcs : hg_stes | hg_stes heavy_hg;
-hg_stes : 'ChE' | 'CE';
+hg_stes : 'ChE' | 'CE' | 'ChoE' | 'CholE';
 
 
 /* mediator lipids (1 class) */
@@ -160,8 +170,8 @@ mediator_tetranor : 'tetranor-';
 mediator_functional_group_clear: mediator_full_function | mediator_function_unknown_pos;
 mediator_function_unknown_pos : mediator_functions;
 mediator_functions : mediator_mono_functions | mediator_di_functions;
-mediator_mono_functions: 'H' | 'Oxo';
-mediator_di_functions: 'E' | 'Ep' | 'DH' | 'DiH';
+mediator_mono_functions: 'H' | 'Oxo' | 'Hp';
+mediator_di_functions: 'E' | 'Ep' | 'DH' | 'DiH' | 'diH';
 mediator_mono_pos: mediator_position;
 mediator_di_pos: mediator_position ',' mediator_position | mediator_position '_' mediator_position | mediator_position '(' mediator_position ')';
 mediator_full_function : mediator_mono_pos '-' mediator_mono_functions | mediator_di_pos '-' mediator_di_functions;
@@ -251,4 +261,3 @@ element: 'C' | 'H' | 'N' | 'O' | 'P' | 'S' | 'Br' | 'I' | 'F' | 'Cl' | 'As';
 charge : '1' | '2' | '3' | '4';
 charge_sign : plus_minus;
 plus_minus : '-' | '+';
-

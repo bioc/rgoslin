@@ -128,7 +128,14 @@ dsl_subspecies: round_open_bracket lcb_fa_sorted round_close_bracket | lcb_fa_so
 
 hg_dslc: hg_dsl_global | hg_dsl_global headgroup_separator;
 hg_dsl_global : hg_dsl | special_cer | special_glyco;
-hg_dsl: 'Cer' | 'CerP' | 'EPC' | 'GB3' | 'GB4' | 'GD3' | 'GM3' | 'GM4' | 'Hex3Cer' | 'Hex2Cer' | 'HexCer' | 'IPC' | 'M(IP)2C' | 'MIPC' | 'SHexCer' | 'SulfoHexCer' | 'SM' | 'PE-Cer' | 'PI-Cer' | 'GlcCer' | 'FMC-5' | 'FMC-6' | 'LacCer' | 'GalCer' | 'C1P' | '(3\'-sulfo)Galbeta-Cer' | omega_linoleoyloxy_Cer;
+hg_dsl: 'Cer' | 'CerP' | 'EPC' | glyco_sphingo_lipid | 'Hex3Cer' | 'Hex2Cer' | 'HexCer' | 'IPC' | 'M(IP)2C' | 'MIPC' | 'SHexCer' | 'SulfoHexCer' | 'SM' | 'PE-Cer' | 'PI-Cer' | 'GlcCer' | 'FMC-5' | 'FMC-6' | 'LacCer' | 'GalCer' | 'C1P' | '(3\'-sulfo)Galbeta-Cer' | omega_linoleoyloxy_Cer;
+glyco_sphingo_lipid : 'GA1' | 'Ga1' | 'GA2' | 'Ga2' |
+ 'GB3' | 'Gb3' | 'GB4' | 'Gb4' |
+ 'GD1' | 'Gd1' | 'GD2' | 'Gd2' | 'GD3' | 'Gd3' |
+ 'GM1' | 'Gm1' | 'GM2' | 'Gm2' | 'GM3' | 'Gm3' | 'GM4' | 'Gm4' |
+ 'GP1' | 'Gp1' |
+ 'GQ1' | 'Gq1' |
+ 'GT1' | 'Gt1' | 'GT2' | 'Gt2' | 'GT3' | 'Gt3';
 omega_linoleoyloxy_Cer : 'omega-linoleoyloxy-' special_cer_hg;
 special_cer : special_cer_prefix '-Cer';
 special_cer_hg : 'Cer';
@@ -162,7 +169,7 @@ ch: 'Cholesterol';
 chec: che | che headgroup_separator | che_fa;
 che: fa headgroup_separator hg_che;
 che_fa: hg_che round_open_bracket fa round_close_bracket;
-hg_che: 'Cholesteryl ester' | 'Cholesterol ester' | 'CE';
+hg_che: 'Cholesteryl ester' | 'Cholesterol ester' | 'CE' | 'ChE';
 
 
 /* mediator lipids */
@@ -181,7 +188,7 @@ mediator_oxo: 'Oxo' | 'oxo';
 
 /* generic rules */
 fa: fa_unmod | fa_unmod fa_mod | fa_unmod fa_mod_separator fa_mod;
-fa_unmod: round_open_bracket ether fa_pure round_close_bracket | round_open_bracket fa_pure round_close_bracket | ether fa_pure | fa_pure;
+fa_unmod: round_open_bracket fa_pure ether_suffix round_close_bracket | round_open_bracket ether_prefix fa_pure round_close_bracket | round_open_bracket fa_pure round_close_bracket | ether_prefix fa_pure | fa_pure ether_suffix | fa_pure;
 fa_mod: round_open_bracket modification round_close_bracket;
 modification: modification ',' modification | single_mod;
 single_mod : isomeric_mod | isomeric_mod square_open_bracket stereo square_close_bracket | structural_mod | structural_mod square_open_bracket stereo square_close_bracket;
@@ -190,13 +197,15 @@ structural_mod : mod_text | mod_text mod_num;
 mod_pos : number;
 mod_num : number;
 mod_text: 'OH' | 'Ke' | 'OOH' | 'My' | 'Me' | 'Br' | 'CHO' | 'COOH' | 'Cp' | 'Ep' | 'KE' | 'NH';
-ether : 'P-' | 'O-';
+ether_prefix : 'P-' | 'O-';
+ether_suffix : 'p' | 'e';
 stereo : 'R' | 'S';
 fa_pure: carbon carbon_db_separator db | carbon carbon_db_separator db db_hydroxyl_separator hydroxyl;
+lcb_pure_fa : lcb_fa;
 lcb_fa: lcb_fa_unmod | lcb_fa_unmod lcb_fa_mod;
 lcb_fa_unmod: carbon carbon_db_separator db;
 lcb_fa_mod: round_open_bracket modification round_close_bracket;
-lcb: hydroxyl_lcb lcb_fa | lcb_fa;
+lcb: hydroxyl_lcb lcb_fa | lcb_pure_fa;
 carbon: number;
 db : db_count | db_count db_positions;
 db_count : number;
