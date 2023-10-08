@@ -128,6 +128,7 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
     lipidDetails.push_back(chr_na, "Lipid.Maps.Category");
     lipidDetails.push_back(chr_na, "Lipid.Maps.Main.Class");
     lipidDetails.push_back(chr_na, "Species.Name");
+    lipidDetails.push_back(chr_na, "Extended.Species.Name");
     lipidDetails.push_back(chr_na, "Molecular.Species.Name");
     lipidDetails.push_back(chr_na, "Sn.Position.Name");
     lipidDetails.push_back(chr_na, "Structure.Defined.Name");
@@ -137,36 +138,42 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
     lipidDetails.push_back(chr_na, "Level");
     lipidDetails.push_back(NA_INTEGER, "Total.C");
     lipidDetails.push_back(NA_INTEGER, "Total.OH");
+    lipidDetails.push_back(NA_INTEGER, "Total.O");
     lipidDetails.push_back(NA_INTEGER, "Total.DB");
     lipidDetails.push_back(NA_REAL, "Mass");
     lipidDetails.push_back(chr_na, "Sum.Formula");
     lipidDetails.push_back(NA_INTEGER, "FA1.Position");
     lipidDetails.push_back(NA_INTEGER, "FA1.C");
     lipidDetails.push_back(NA_INTEGER, "FA1.OH");
+    lipidDetails.push_back(NA_INTEGER, "FA1.O");
     lipidDetails.push_back(NA_INTEGER, "FA1.DB");
     lipidDetails.push_back(chr_na, "FA1.Bond.Type");
     lipidDetails.push_back(chr_na, "FA1.DB.Positions");
     lipidDetails.push_back(NA_INTEGER, "FA2.Position");
     lipidDetails.push_back(NA_INTEGER, "FA2.C");
     lipidDetails.push_back(NA_INTEGER, "FA2.OH");
+    lipidDetails.push_back(NA_INTEGER, "FA2.O");
     lipidDetails.push_back(NA_INTEGER, "FA2.DB");
     lipidDetails.push_back(chr_na, "FA2.Bond.Type");
     lipidDetails.push_back(chr_na, "FA2.DB.Positions");
     lipidDetails.push_back(NA_INTEGER, "LCB.Position");
     lipidDetails.push_back(NA_INTEGER, "LCB.C");
     lipidDetails.push_back(NA_INTEGER, "LCB.OH");
+    lipidDetails.push_back(NA_INTEGER, "LCB.O");
     lipidDetails.push_back(NA_INTEGER, "LCB.DB");
     lipidDetails.push_back(chr_na, "LCB.Bond.Type");
     lipidDetails.push_back(chr_na, "LCB.DB.Positions");
     lipidDetails.push_back(NA_INTEGER, "FA3.Position");
     lipidDetails.push_back(NA_INTEGER, "FA3.C");
     lipidDetails.push_back(NA_INTEGER, "FA3.OH");
+    lipidDetails.push_back(NA_INTEGER, "FA3.O");
     lipidDetails.push_back(NA_INTEGER, "FA3.DB");
     lipidDetails.push_back(chr_na, "FA3.Bond.Type");
     lipidDetails.push_back(chr_na, "FA3.DB.Positions");
     lipidDetails.push_back(NA_INTEGER, "FA4.Position");
     lipidDetails.push_back(NA_INTEGER, "FA4.C");
     lipidDetails.push_back(NA_INTEGER, "FA4.OH");
+    lipidDetails.push_back(NA_INTEGER, "FA4.O");
     lipidDetails.push_back(NA_INTEGER, "FA4.DB");
     lipidDetails.push_back(chr_na, "FA4.Bond.Type");
     lipidDetails.push_back(chr_na, "FA4.DB.Positions");
@@ -184,6 +191,7 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
         std::string level = chr_na;
         int totalC = 0;
         int totalOH = 0;
+        int totalO = 0;
         int totalDB = 0;
         double mass = 0;
         std::string formula = chr_na;
@@ -200,13 +208,18 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
                 adductString = lipidAdduct->adduct->get_lipid_string();
                 adductCharge = lipidAdduct->adduct->get_charge();
             }
-            lipidMapsMainClass = lipid->headgroup->get_class_name();
+            //lipidMapsMainClass = lipid->headgroup->get_class_name();
             headGroup = lipid->headgroup->headgroup;
             LipidClassMeta lcMeta = LipidClasses::get_instance().lipid_classes.at(lipid->headgroup->get_class(headGroup));
             headGroupSynonyms = "[" + join(lcMeta.synonyms, ", ") + "]";
             level = get_lipid_level_str(info->level);
             totalC = info->num_carbon;
             totalOH = info->get_total_functional_group_count("OH");
+            
+            ElementTable* e = info->get_functional_group_elements();
+            totalO = e->at(ELEMENT_O);
+            delete e;
+            
             totalDB = info->double_bonds->get_num();
             mass = lipidAdduct->get_mass();
             formula = lipidAdduct->get_sum_formula();
@@ -221,6 +234,7 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
             lipidDetails["Lipid.Maps.Category"] = lipidMapsCategory;
             lipidDetails["Lipid.Maps.Main.Class"] = lipidMapsMainClass;
             lipidDetails["Species.Name"] = species;
+            lipidDetails["Extended.Species.Name"] = lipidAdduct->get_extended_class();
             lipidDetails["Molecular.Species.Name"] = get_lipid_name_for_level(lipidAdduct, MOLECULAR_SPECIES);
             lipidDetails["Sn.Position.Name"] = get_lipid_name_for_level(lipidAdduct, SN_POSITION);
             lipidDetails["Structure.Defined.Name"] = get_lipid_name_for_level(lipidAdduct, STRUCTURE_DEFINED);
@@ -244,6 +258,7 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
                 lipidDetails[prefix + "Position"] = fap->position;
                 lipidDetails[prefix + "C"] = fap->num_carbon;
                 lipidDetails[prefix + "OH"] = fap->get_total_functional_group_count("OH");
+                lipidDetails[prefix + "O"] = fap->num_oxygens();
                 lipidDetails[prefix + "DB"] = fap->double_bonds->num_double_bonds;
                 string fa_bond_type = "ESTER";
                 switch(fap->lipid_FA_bond_type){
@@ -269,6 +284,7 @@ SEXP handle_lipid(LipidAdduct* lipidAdduct, std::string lipid_name, std::string 
                 lipidDetails[prefix + "DB.Positions"] = dbPos.str();
             }
             lipidDetails["Total.OH"] = totalOH;
+            lipidDetails["Total.O"] = totalO;
         }
         delete lipidAdduct;
     } else {

@@ -9,7 +9,7 @@ else
 endif
 install_dir = /usr
 ifeq ($(origin CC),default)
-CC  = g++
+CC = g++
 endif
 #CC = g++ -std=c++11
 #CC = clang++-10
