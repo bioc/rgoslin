@@ -15,6 +15,7 @@ See the [Goslin repository](https://github.com/lifs-tools/goslin) and [Goslin C+
 ### Bug Fixes
 
 - Minor bug fixes
+- Removed wrong Lyso classification for SPB, SPBP, LHexCer, LSM
 
 # rgoslin 1.4.0 
 
