@@ -87,6 +87,13 @@ int main(int argc, char** argv){
     assert_true(l->get_sum_formula(), "C22H47N2O5P");
     delete l;
     
+    
+    
+    l = parser.parse("13-oxoODE");
+    assert_true(l->get_lipid_string(MOLECULAR_SPECIES), "FA 18:3;O");
+    assert_true(l->get_sum_formula(), "C18H30O3");
+    delete l;
+    
     l = parser.parse("LCB 18:1(4E);2");
     assert_true(l->get_lipid_string(STRUCTURE_DEFINED), "SPB 18:1(4);(OH)2");
     assert_true(l->get_lipid_string(SN_POSITION), "SPB 18:1;O2");
@@ -162,11 +169,11 @@ int main(int argc, char** argv){
     delete l;
     
     l = parser.parse("NO2-OA");
-    assert_true(l->get_lipid_string(STRUCTURE_DEFINED), "FA 18:1;NO2");
+    assert_true(l->get_lipid_string(STRUCTURE_DEFINED), "FA 18:1(9);NO2");
     delete l;
     
     l = parser.parse("7(R),14(S)-DiHDHA");
-    assert_true(l->get_lipid_string(STRUCTURE_DEFINED), "FA 22:6;(OH)2");
+    assert_true(l->get_lipid_string(STRUCTURE_DEFINED), "FA 22:6(4,7,10,13,16,19);(OH)2");
     delete l;
     
     
